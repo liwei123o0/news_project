@@ -19,7 +19,9 @@ import logging
 import json
 from scrapy.selector import Selector
 from scrapy.http import Request
-from urlparse import urljoin
+from urllib.parse import urljoin
+# python2.7 依赖库
+# from urlparse import urljoin
 
 
 # 站内搜索
