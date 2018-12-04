@@ -45,7 +45,7 @@ class NewSpider(CrawlSpider):
             raise logging.error(u"name_spider或spider_jobid 不能为空!!!")
         domains = conf.get("allowed_domains", "").split(",")
         self.allowed_domains = domains
-        if conf.get("proxy").lower() in "false":
+        if int(conf.get("proxy_type", 0)) == 0:
             self.proxy = False
         else:
             self.proxy = True
