@@ -68,7 +68,6 @@ class StatsPoster(object):
             self.ROWstr = (self.ROWstr + u'"%s"' + u',') % (dic[key])
         # 判断表是否存在，存在执行try，不存在执行except新建表，再insert
         try:
-            self.cur.execute(u"SELECT * FROM  net_spider_logs")
             for key in dic.keys():
                 # 判断该字段是否存在,不存在则创建该字段
                 key = key.replace(u"/", u"_").replace(u".", u"_").replace(u"'", u"")
@@ -79,7 +78,7 @@ class StatsPoster(object):
                     self.cur.execute(u"ALTER TABLE net_spider_logs ADD COLUMN {} varchar(100); ".format(key))
             self.cur.execute(
                 u"INSERT INTO net_spider_logs (%s)VALUES (%s)" % (COLstr, self.ROWstr[:-1]))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             self.cur.execute(
                 u"INSERT INTO net_spider_logs (%s)VALUES (%s)" % (COLstr, self.ROWstr[:-1]))
         self.conn.commit()
