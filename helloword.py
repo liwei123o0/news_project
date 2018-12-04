@@ -13,11 +13,11 @@
 import time
 import os
 def main():
-    print u"""
+    print (u"""
 scrapy shell 测试工具V1.0！
     info      显示采集数据！(默认)
     debug     显示详细任务采集情况！
-    """
+    """)
     os.system("pause")
 if __name__ == "__main__":
     main()

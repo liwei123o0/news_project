@@ -10,12 +10,12 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 import os
-import ConfigParser
+import configparser
 
-# PATH = "E:\\news_project\\settings.ini"
+PATH = "C://project//scrapyd//settings.ini"
 # 南京WINDOWS
-PATH = "C://news_project//settings.ini"
-#linux
+# PATH = "C://news_project//settings.ini"
+# linux
 # PATH = "/root/scrapyd/settings.ini"
 
 BOT_NAME = 'xbzxproject'
@@ -34,7 +34,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firef
 ROBOTSTXT_OBEY = False
 
 ###############splash 配置#######################
-conf = ConfigParser.ConfigParser()
+conf = configparser.ConfigParser()
 conf.read(PATH)
 SPLASH_URL = conf.get("splash", "splash_url")
 # 去重过滤器
@@ -54,9 +54,9 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 # SCHEDULER = "scrapy_redis.scheduler.Scheduler"
 # SCHEDULER_PERSIST = True
 # SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderPriorityQueue"
-#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderQueue"
+# SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderQueue"
 # 栈形式，请求先进后出
-#SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderStack"
+# SCHEDULER_QUEUE_CLASS = "scrapy_redis.queue.SpiderStack"
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
@@ -95,7 +95,6 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
-
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
