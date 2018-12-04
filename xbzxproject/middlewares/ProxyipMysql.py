@@ -60,7 +60,7 @@ class ProxyMiddleware(object):
                 else:
                     proxy = self.random_proxy()[2]
                     request.meta[u'proxy'] = u"http://%s" % proxy
-                    proxy_user_pass = u"te928m:te928m"
+                    proxy_user_pass = u"{}:{}".format(PROXY_USER_NAME, PROXY_PASSWD)
                     encoded_user_pass = base64.encodestring(proxy_user_pass)
                     request.headers[u'Proxy-Authorization'] = u'Basic ' + encoded_user_pass
 
@@ -76,7 +76,7 @@ class ProxyMiddleware(object):
                 else:
                     proxy = self.random_proxy()[2]
                     request.meta[u'proxy'] = u"http://%s" % proxy
-                    proxy_user_pass = u"te928m:te928m"
+                    proxy_user_pass = u"{}:{}".format(PROXY_USER_NAME, PROXY_PASSWD)
                     encoded_user_pass = base64.encodestring(proxy_user_pass)
                     request.headers[u'Proxy-Authorization'] = u'Basic ' + encoded_user_pass
         except:
