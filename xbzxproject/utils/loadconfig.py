@@ -16,9 +16,9 @@ import MySQLdb.cursors
 import logging, json
 from xbzxproject.settings import PATH
 import requests
-import ConfigParser
+import configparser
 
-conf = ConfigParser.ConfigParser()
+conf = configparser.RawConfigParser()
 conf.read(PATH)
 
 # mysql
@@ -31,6 +31,8 @@ DATABASES = conf.get("mysql", "databases")
 # proxy
 PROXY_COUT = conf.get("proxy", "proxy_cout")
 RANDOM_NUMBER = conf.get("proxy", "random_number")
+PROXY_USER_NAME = conf.get("proxy", "username")
+PROXY_PASSWD = conf.get("proxy", "passwd")
 
 # scrapy
 PROJECT = conf.get("scrapy", "project")
@@ -41,6 +43,7 @@ PORT_SCRAPYD = conf.get("scrapyd", "port")
 
 # api
 API_PROT = conf.get("api", "port")
+print(API_PROT)
 API_NAMESPIDER = conf.get("api", "namespider")
 API_all = conf.get("api", "all")
 
@@ -54,9 +57,9 @@ def fileconfig(name_spider):
         cur.execute(u"SELECT * FROM net_spider WHERE spider_name='{}'".format(name_spider))
         keywords = cur.fetchone()
         if keywords == None:
-            print u"爬虫名:{}".format(name_spider)
+            print(u"爬虫名:{}").format(name_spider)
             raise logging.error(u"爬虫名:{} 配置信息未找到!".format(name_spider))
-    except MySQLdb.Error, e:
+    except MySQLdb.Error as e:
         cur.close()
         conn.close()
         raise logging.error(u"Mysql Error %d: %s" % (e.args[0], e.args[1]))
