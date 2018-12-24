@@ -26,7 +26,8 @@ from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
 
 
 class NewSpider(CrawlSpider):
-    name = "news"
+    name = "bbs"
+
     # 加载规则配置文件
     # 获取额外参数
     def __init__(self, spider_jobid=None, name_spider=None, debug=False, *args, **kwargs):
@@ -131,6 +132,6 @@ class NewSpider(CrawlSpider):
                     l.add_value(k, u"{}".format(fields.get("fields").get(k).get("value")))
         return l.load_item()
 
-if __name__ =="__main__":
-    pass
 
+if __name__ == "__main__":
+    pass

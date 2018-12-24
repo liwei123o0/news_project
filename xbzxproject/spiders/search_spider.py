@@ -10,18 +10,20 @@
 @note:新闻通用模版采集~必须字段: spider_jobid name_spider
 
 """
+import json
+import logging
+
 from scrapy import Item, Field
+from scrapy.http import Request
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose
-from scrapy.spiders import Spider
-from xbzxproject.utils.loadconfig import loadMySQL, fileconfig, loadkeywords
-import logging
-import json
 from scrapy.selector import Selector
-from scrapy.http import Request
-from urllib.parse import urljoin
+from scrapy.spiders import Spider
+
+from xbzxproject.utils.loadconfig import loadMySQL, fileconfig, loadkeywords
+# from urllib.parse import urljoin
 # python2.7 依赖库
-# from urlparse import urljoin
+from urlparse import urljoin
 
 
 # 站内搜索

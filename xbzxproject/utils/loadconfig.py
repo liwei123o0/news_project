@@ -11,14 +11,17 @@
 
 """
 
+import ConfigParser
+import json
+import logging
+
 import MySQLdb
 import MySQLdb.cursors
-import logging, json
-from xbzxproject.settings import PATH
 import requests
-import configparser
 
-conf = configparser.RawConfigParser()
+from xbzxproject.settings import PATH
+
+conf = ConfigParser.RawConfigParser()
 conf.read(PATH)
 
 # mysql

@@ -9,10 +9,9 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-import os
-import configparser
+import ConfigParser
 
-PATH = "C://project//scrapyd//settings.ini"
+PATH = "D://news_project//settings.ini"
 # 南京WINDOWS
 # PATH = "C://news_project//settings.ini"
 # linux
@@ -34,7 +33,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firef
 ROBOTSTXT_OBEY = False
 
 ###############splash 配置#######################
-conf = configparser.ConfigParser()
+conf = ConfigParser.ConfigParser()
 conf.read(PATH)
 SPLASH_URL = conf.get("splash", "splash_url")
 # 去重过滤器
