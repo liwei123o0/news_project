@@ -20,14 +20,16 @@ from scrapy import Item, Field
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose
-from scrapy_splash import SplashRequest
 from scrapy.spiders import Spider
+from scrapy_splash import SplashRequest
+
 # from scrapy_redis.spiders import RedisSpider
 from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
 
 
 class NewSplashSpider(Spider):
     name = "news_js"
+    table_name = "data_news"
     def __init__(self, spider_jobid=None, name_spider=None, debug=False, *args, **kwargs):
         self.spider_jobid = spider_jobid
         self.name_spider = name_spider

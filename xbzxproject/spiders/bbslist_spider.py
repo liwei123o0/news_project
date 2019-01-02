@@ -18,27 +18,27 @@ from datetime import datetime
 
 from scrapy import Item, Field
 from scrapy.linkextractors import LinkExtractor
-from scrapy.loader import ItemLoader
-from scrapy.loader.processors import MapCompose
+from scrapy.selector import Selector
 from scrapy.spiders import CrawlSpider, Rule
 
 from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
 
 
-class NewSpider(CrawlSpider):
-    name = "news"
-    table_name = "data_news"
+# 搜索引擎
+class BBsListSpider(CrawlSpider):
+    name = "re_bbs"
+    table_name = "data_comment"
+
     # 加载规则配置文件
     # 获取额外参数
     def __init__(self, spider_jobid=None, name_spider=None, debug=False, *args, **kwargs):
         self.spider_jobid = spider_jobid
         self.name_spider = name_spider
-        # self.redis_key = "newsspider:strat_urls"
         self.debug = debug
         self.conf = api_netspider(name_spider)
         self.loadconf(self.name_spider, self.spider_jobid, self.conf)
         self.keys = loadMySQL(self.name_spider)['fields'].keys()
-        super(NewSpider, self).__init__(*args, **kwargs)
+        super(BBsListSpider, self).__init__(*args, **kwargs)
 
     # 规则配置
     def loadconf(self, name_spider, spider_jobid, conf):
@@ -109,29 +109,36 @@ class NewSpider(CrawlSpider):
     # 内容解析
     def parse_item(self, response):
         item = Item()
+        sel = Selector(response)
         fields = json.loads(self.conf.get("fields"))
-        l = ItemLoader(item, response)
-        item.fields["url"] = Field()
-        item.fields["spider_jobid"] = Field()
-        l.add_value("url", response.url)
-        l.add_value("spider_jobid", self.spider_jobid)
+        loops_cout = len(sel.xpath(fields.get("fields").get("loop_content").get("xpath")))
+        loops = sel.xpath(fields.get("fields").get("loop_content").get("xpath"))
 
-        # 加载动态库字段建立Field,xpath规则 (方法一)
-        for k in self.keys:
-            if fields.get("fields", "") == "":
-                logging.error(u"内容解析未得到!!!")
-                return l.load_item()
-            if fields.get("fields").get(k) != None:
-                item.fields[k] = Field()
-                if fields.get("fields").get(k).keys()[0] == "xpath":
-                    l.add_xpath(k, u"{}".format(fields.get("fields").get(k).get("xpath")),
-                                MapCompose(unicode.strip))
-                elif fields.get("fields").get(k).keys()[0] == "value":
-                    if fields.get("fields").get(k).get("value") == u"{TODAY}":
-                        l.add_value(k, u"{}".format(datetime.now()))
-                    l.add_value(k, u"{}".format(fields.get("fields").get(k).get("value")))
-        return l.load_item()
+        if loops_cout > 0:
+            item.fields["url"] = Field()
+            item.fields["spider_jobid"] = Field()
+            item['url'] = response.url
+            item['spider_jobid'] = self.spider_jobid
+            item.fields["title"] = Field()
+            for loop in loops:
+                for k in self.keys:
+                    if fields.get("fields").get(k) != None:
+                        if k != "pubtime" and k != "content" and k != "author" and k != "title" and k != "loop_content":
+                            item.fields[k] = Field()
+                            if fields.get("fields").get(k).keys()[0] == "xpath":
+                                item[k] = "".join(
+                                    loop.xpath(fields.get("fields").get(k).get("xpath")).extract()).strip()
+                            elif fields.get("fields").get(k).keys()[0] == "value":
+                                item[k] = fields.get("fields").get(k).get("value")
+                        elif k == "title" or k == "site_name":
+                            item.fields[k] = Field()
+                            if fields.get("fields").get(k).keys()[0] == "xpath":
+                                item[k] = "".join(
+                                    loop.xpath(fields.get("fields").get(k).get("xpath")).extract()).strip()
+                            elif fields.get("fields").get(k).keys()[0] == "value":
+                                item[k] = fields.get("fields").get(k).get("value")
+                yield item
 
-if __name__ =="__main__":
+
+if __name__ == "__main__":
     pass
-

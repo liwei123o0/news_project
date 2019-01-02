@@ -25,20 +25,20 @@ from scrapy.spiders import CrawlSpider, Rule
 from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
 
 
-class NewSpider(CrawlSpider):
+class BBsSpider(CrawlSpider):
     name = "bbs"
+    table_name = "data_bbs"
 
     # 加载规则配置文件
     # 获取额外参数
     def __init__(self, spider_jobid=None, name_spider=None, debug=False, *args, **kwargs):
         self.spider_jobid = spider_jobid
         self.name_spider = name_spider
-        # self.redis_key = "newsspider:strat_urls"
         self.debug = debug
         self.conf = api_netspider(name_spider)
         self.loadconf(self.name_spider, self.spider_jobid, self.conf)
         self.keys = loadMySQL(self.name_spider)['fields'].keys()
-        super(NewSpider, self).__init__(*args, **kwargs)
+        super(BBsSpider, self).__init__(*args, **kwargs)
 
     # 规则配置
     def loadconf(self, name_spider, spider_jobid, conf):
@@ -119,9 +119,9 @@ class NewSpider(CrawlSpider):
         # 加载动态库字段建立Field,xpath规则 (方法一)
         for k in self.keys:
             if fields.get("fields", "") == "":
-                logging.error(u"内容解析未得到!!!")
-                return l.load_item()
-            if fields.get("fields").get(k) != None:
+                raise logging.error(u"内容解析未得到!!!")
+            if fields.get("fields").get(
+                    k) != None and k != "re_author" and k != "re_content" and k != "re_pubtime" and k != "loop_content":
                 item.fields[k] = Field()
                 if fields.get("fields").get(k).keys()[0] == "xpath":
                     l.add_xpath(k, u"{}".format(fields.get("fields").get(k).get("xpath")),

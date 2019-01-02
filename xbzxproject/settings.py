@@ -75,6 +75,9 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
 
+# 设置网络输出编码
+# FEED_EXPORT_ENCODING = 'gb18030'
+
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

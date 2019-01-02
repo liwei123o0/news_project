@@ -12,16 +12,19 @@
 
 """
 
-
-import re
-import MySQLdb
-import sys
 import hashlib
+import re
+import sys
+
+import MySQLdb
+
 from xbzxproject.utils import date_parse
 from xbzxproject.utils.loadconfig import *
 
 reload(sys)
 sys.setdefaultencoding("utf8")
+
+
 # mysql入库Pipeline
 class XbzxprojectPipeline(object):
     # 开启爬虫初始化工作
@@ -38,7 +41,9 @@ class XbzxprojectPipeline(object):
             logging.info(u"代理随机切换数：{}".format(RANDOM_NUMBER))
         else:
             logging.info(u"代理状态:False")
+
     def process_item(self, item, spider):
+        # print item['title'][0]
         for k in item:
             item[k] = u"".join(item[k])
             item[k] = re.sub(r"\xa0", "", item[k])
@@ -49,6 +54,8 @@ class XbzxprojectPipeline(object):
             # 判断字段是否存在
             if 'pubtime' in item:
                 item['pubtime'] = unicode(date_parse.parse_date(item['pubtime']))
+            if 're_pubtime' in item:
+                item['re_pubtime'] = unicode(date_parse.parse_date(item['re_pubtime']))
         except:
             logging.error(u"时间格式化错误!")
             return item
@@ -62,6 +69,13 @@ class XbzxprojectPipeline(object):
             values.append(v)
         fields.append("net_spider_id")
         values.append(self.net_spider_id)
+        if spider.name == "re_bbs":
+            re_md5 = hashlib.md5()
+            item_md5 = item['url'] + item['re_author'] + item['re_pubtime']
+            re_md5.update(item_md5)
+            content_md5 = re_md5.hexdigest()
+            fields.append("content_md5")
+            values.append(content_md5)
         md5 = hashlib.md5()
         md5.update(item['url'])
         url_md5 = md5.hexdigest()
@@ -78,7 +92,7 @@ class XbzxprojectPipeline(object):
             sql = u"INSERT INTO data_spider_temp({}) VALUES ( ".format(u",".join(fields))
             for value in values:
                 sql += u"'{}',".format(MySQLdb.escape_string(value))
-            sql = sql[:-1] + ");"
+            sql = sql[:-1] + u");"
             try:
                 self.cur.execute(sql)
                 self.conn.commit()
@@ -87,7 +101,7 @@ class XbzxprojectPipeline(object):
         else:
             try:
                 # 根据 item 字段插入数据
-                sql = u"INSERT INTO {}({}) VALUES ( ".format(u"data_news", u",".join(fields))
+                sql = u"INSERT INTO {}({}) VALUES ( ".format(spider.table_name, u",".join(fields))
                 for value in values:
                     sql += u"'{}',".format(MySQLdb.escape_string(value))
                 sql += u" ) ON DUPLICATE KEY UPDATE "
@@ -96,11 +110,9 @@ class XbzxprojectPipeline(object):
                 for f in fields:
                     sql += u'{}=VALUES({}),'.format(f, f)
                 sql = sql[:-1] + ";"
-                if len(item.keys()) >= 5:
-                    if len(item['content']) != 0 or len(item['title']) != 0:
-                        self.cur.execute(sql)
-                        self.conn.commit()
-                        logging.info(u"数据插入/更新成功!")
+                self.cur.execute(sql)
+                self.conn.commit()
+                logging.info(u"数据插入/更新成功!")
             except MySQLdb.Error, e:
                 logging.error(u"Mysql Error %d: %s" % (e.args[0], e.args[1]))
         self.cout += 1

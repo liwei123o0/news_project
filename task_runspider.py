@@ -10,12 +10,12 @@
 @note:
 
 """
-import requests
-from uuid import uuid4
-import random
 import json
+import random
 import time
+from uuid import uuid4
 
+import requests
 
 urls = ["http://222.93.105.248:6800/schedule.json", "http://222.93.106.15:6800/schedule.json",
         "http://222.93.106.248:6800/schedule.json",
@@ -41,7 +41,7 @@ def run ():
         except:
             cout += 1
             continue
-    print("任务分发总数：%s \n 错误数：%s" % (len(name_spiders), cout))
+    print(u"任务分发总数：%s \n 错误数：%s" % (len(name_spiders), cout))
 
 if __name__=='__main__':
     pass

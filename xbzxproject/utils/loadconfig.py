@@ -17,7 +17,6 @@ import logging
 
 import MySQLdb
 import MySQLdb.cursors
-import requests
 
 from xbzxproject.settings import PATH
 
@@ -46,7 +45,6 @@ PORT_SCRAPYD = conf.get("scrapyd", "port")
 
 # api
 API_PROT = conf.get("api", "port")
-print(API_PROT)
 API_NAMESPIDER = conf.get("api", "namespider")
 API_all = conf.get("api", "all")
 
@@ -73,12 +71,23 @@ def fileconfig(name_spider):
 
 # API读取爬虫配置信息
 def api_netspider(name_spider):
-    url = API_NAMESPIDER.format(prot=API_PROT, name_spider=name_spider)
-    datas = json.loads(requests.get(url).content)
-    try:
-        return datas['data']["datas"][0]
-    except:
-        raise logging.error(u"爬虫名:{} 配置信息未找到!".format(name_spider))
+    # url = API_NAMESPIDER.format(prot=API_PROT, name_spider=name_spider)
+    # datas = json.loads(requests.get(url).content)
+    # try:
+    #     return datas['data']["datas"][0]
+    # except:
+    #     raise logging.error(u"爬虫名:{} 配置信息未找到!".format(name_spider))
+    return {u'spider_name': u'ixian1', u'update_date': u'2019-01-02 11:40:31', u'area_id': u'\u897f\u5b89',
+            u'start_urls': u'https://www.ixian.cn/forum-1088-1.html', u'user_id': u'39',
+            u'allowed_domains': u'ixian.cn',
+            u'rules': u'{"rules_pagexpath":"","rules_listxpath":"//div[@class=\'busforumlist_item_title\']/a[1]"}',
+            u'fields': u'{"fields":{"loop_content":{"xpath":"//div[@class=\'mobanbus_reply\']"},"title":{"xpath":"//h2//text()"},"content":{"xpath":"(//td[@class=\'t_f\'])[1]/text()"},"pubtime":{"xpath":"//div[@class=\'item_b\']/span[2]/text()"},"author":{"xpath":"//div[@class=\'bus_avatarnamne\']/a/text()"},"re_content":{"xpath":".//td[@class=\'t_f\']//text()"},"re_pubtime":{"xpath":".//em//text()"},"re_author":{"xpath":".//span[@class=\'pl5 pr5\']//text()"}}}',
+            u'latest_count': u'0', u'proxy_type': u'0', u'proxy': u'False',
+            u'latest_insert_time': u'2018-01-01 00:00:00', u'status': u'0', u'spider_type': u'bbs',
+            u'chinesename': u'\u8363\u8000\u897f\u5b89', u'latest_pub_time': u'2018-01-01 00:00:00',
+            u'create_date': u'2018-12-25 11:39:44', u'last_user_id': u'39', u'id': u'1206', u'has_latest_data': u'0',
+            u'uuid': u'ac5cae79ea13410c90dc8612795bcb70'}
+
 
 
 # 读取自动建库字段
@@ -99,6 +108,5 @@ def loadkeywords():
 
 if __name__ == "__main__":
     pass
-    # print loadMySQL("sohunews")
-    # print api_netspider("thx")
     # print api_netspider("hzxw_net_cn")
+    # print loadMySQL("ixian1")
