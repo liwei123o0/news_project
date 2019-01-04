@@ -43,7 +43,6 @@ class XbzxprojectPipeline(object):
             logging.info(u"代理状态:False")
 
     def process_item(self, item, spider):
-        # print item['title'][0]
         for k in item:
             item[k] = u"".join(item[k])
             item[k] = re.sub(r"\xa0", "", item[k])

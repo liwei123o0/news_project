@@ -10,13 +10,9 @@
 @note:
 
 """
-in_put = "d"
+import pytesseract
+from PIL import Image
 
-a = "re_author"
-b = "re_content"
-c = "re_pubtime"
-
-if in_put != None and in_put != a and in_put != b and in_put != c:
-    print "ok"
-else:
-    print "no"
+image = Image.open('D:\\news_project\\6.jpg')
+code = pytesseract.image_to_string(image)
+print code

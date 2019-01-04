@@ -34,10 +34,19 @@ def run ():
                         "spider_type": name_spider['spider_type'],
                         "name_spider": name_spider['spider_name'],
                         "spider_jobid": uuid}
-                txt = json.loads(requests.post(url=ip, data=data).content)
-                txt['ip'] = ip
-                time.sleep(0.1)
-                print(txt)
+                if name_spider['spider_type'] == "bbs":
+                    txt = json.loads(requests.post(url=ip, data=data).content)
+                    data["spider_type"] = "re_bbs"
+                    time.sleep(0.1)
+                    json.loads(requests.post(url=ip, data=data).content)
+                    time.sleep(0.1)
+                    txt['ip'] = ip
+                    print(txt)
+                else:
+                    txt = json.loads(requests.post(url=ip, data=data).content)
+                    txt['ip'] = ip
+                    time.sleep(0.1)
+                    print(txt)
         except:
             cout += 1
             continue
@@ -46,7 +55,3 @@ def run ():
 if __name__=='__main__':
     pass
     run()
-    # url = 'http://sync.yuwoyg.com:8086/api/web/manage/config/newsConfig/searchAll?columns=spider_name%2Ccrontab'
-    # print(requests.get(url).content)
-    # a = dict({"name_spider": "liwei"})
-    # print('name_spider' in a.keys())
