@@ -16,7 +16,10 @@ import re
 import string
 from datetime import datetime
 
+import requests
+from lxml import etree
 from scrapy import Item, Field
+from scrapy.http import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose
@@ -87,24 +90,53 @@ class NewSpider(CrawlSpider):
             logging.error(u"规则解析未得到!!!")
             return
         keys = len(rules.keys())
+        use_iframe = conf.get("use_iframe", "0")
         if keys == 1:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath", ""))),
-                    follow=False,
-                    callback="parse_item")
-            ]
+            if use_iframe == "0":
+                self.rules = [
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("rules_listxpath", ""))),
+                        follow=False,
+                        callback="parse_item")
+                ]
+            else:
+                self.rules = [
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("rules_listxpath", ""))),
+                        follow=False,
+                        callback="parse_iframe")
+                ]
         elif keys == 2:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("reles_pagexpath"))),
-                    follow=True,
-                ),
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath"))),
-                    follow=False,
-                    callback="parse_item")
-            ]
+            if use_iframe == "0":
+                self.rules = [
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("reles_pagexpath"))),
+                        follow=True,
+                    ),
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("rules_listxpath"))),
+                        follow=False,
+                        callback="parse_item")
+                ]
+            else:
+                self.rules = [
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("reles_pagexpath"))),
+                        follow=True,
+                    ),
+                    Rule(LinkExtractor(
+                        restrict_xpaths=u"{}".format(rules.get("rules_listxpath"))),
+                        follow=False,
+                        callback="parse_iframe")
+                ]
+
+    # iframe内容解析
+    def parse_iframe(self, response):
+        uri = response.url
+        html = requests.get(uri).content
+        dom = etree.HTML(html)
+        uri = u"".join(dom.xpath("//iframe/@src"))
+        return Request(uri, callback="parse_item")
 
     # 内容解析
     def parse_item(self, response):
@@ -134,4 +166,3 @@ class NewSpider(CrawlSpider):
 
 if __name__ =="__main__":
     pass
-

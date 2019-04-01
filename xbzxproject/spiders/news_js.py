@@ -16,6 +16,8 @@ import re
 import string
 from datetime import datetime
 
+import requests
+from lxml import etree
 from scrapy import Item, Field
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
@@ -88,8 +90,16 @@ class NewSplashSpider(Spider):
         if rules == "":
             raise logging.error(u"规则解析未得到!!!")
         links = LinkExtractor(restrict_xpaths=u"%s" % rules['rules_listxpath'])
-        for url in links.extract_links(response):
-            yield SplashRequest(url.url, self.parse, args={'wait': 1}, endpoint='render.html')
+        use_iframe = self.conf.get("use_iframe", "0")
+        if use_iframe == "0":
+            for url in links.extract_links(response):
+                yield SplashRequest(url.url, self.parse, args={'wait': 1}, endpoint='render.html')
+        else:
+            for uri in links.extract_links(response):
+                html = requests.get(uri.url).content
+                dom = etree.HTML(html)
+                url = u"".join(dom.xpath("//iframe/@src"))
+                yield SplashRequest(url, self.parse, args={'wait': 1}, endpoint='render.html')
 
     def parse(self, response):
         item = Item()
