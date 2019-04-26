@@ -318,12 +318,20 @@ def spider_run():
     driver = webdriver.Chrome(chrome_options=chrome_options)
     htmls = []
     for url in urls:
-        driver.get(url)
+        url_slit = url.split(":")
+        urii = ":".join(url_slit[1:-1]).strip()
+        site_name = url_slit[0].strip()
+        source_url = url_slit[-1].strip()
+        driver.get(urii)
         driver.implicitly_wait(10)
-        htmls.append(driver.page_source)
+        htmls.append(u"{}:{}:{}".format(site_name, driver.page_source, source_url))
     driver.quit()
     for html in htmls:
-        doms = etree.HTML(html)
+        url_slit = html.split(":")
+        htmli = ":".join(url_slit[1:-1]).strip()
+        site_name = url_slit[0].strip()
+        source_url = url_slit[-1].strip()
+        doms = etree.HTML(htmli)
         dom = doms.xpath("//div[@class='gajxj_con']//tr")
         for d in dom:
             item = {}
@@ -336,7 +344,8 @@ def spider_run():
             item['title'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['title']['xpath'])).strip()
             item['author'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['author']['xpath'])).strip()
             item['pubtime'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['pubtime']['xpath'])).strip()
-            item['site_name'] = json.loads(name_spider['fields'])['fields']['site_name']['value']
+            item['site_name'] = site_name
+            item['source_url'] = source_url
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
             item['content'] = u"".join(
@@ -352,7 +361,8 @@ def spider_run():
                 d.xpath(json.loads(name_spider['fields'])['fields']['re_pubtime']['xpath'])).strip()
             item['re_content'] = u"".join(
                 dd.xpath(json.loads(name_spider['fields'])['fields']['re_content']['xpath'])).strip()
-            item['site_name'] = json.loads(name_spider['fields'])['fields']['site_name']['value']
+            item['site_name'] = site_name
+            item['source_url'] = source_url
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
             item_fileds(item, "data_comment", "re_bbs", True)

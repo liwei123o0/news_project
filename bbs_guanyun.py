@@ -27,6 +27,7 @@ fake = Faker(locale="zh_CN")
 conf = "http://sync.yuwoyg.com:8086/api/web/manage/config/newsConfig/open/search?filters[0].columnName=spider_name&filters[0].op=2&filters[0].value=guanyun_01"
 api_all = json.loads(requests.get(conf).content)
 name_spider = api_all['data']["datas"][0]
+start_urls = name_spider['start_urls'].split(',')
 urls = ["http://new.guanyun.gov.cn/intertidwebapp/mailbox/letterListJson"]
 __all__ = ['parse_date', 'tz_offset']
 
@@ -306,13 +307,15 @@ def item_fileds(item, tablename, type_name, debug):
 
 
 def spider_run():
-    for url in urls:
+    for url in start_urls:
         headers = {
             "Host": "new.guanyun.gov.cn",
             "Referer": "http://new.guanyun.gov.cn/fzlm/sjxx/index.shtml",
             "User-Agent": fake.user_agent(),
         }
         data = {"mailType": "0", "pageSize": "15", "pageNum": "1", "channelId": "1067"}
+        url_slit = url.split(":")
+        url = ":".join(url_slit[1:-1])
         hl = json.loads(requests.post(url, headers=headers, data=data).content)
         for litem in hl['topics']:
             item = {}
@@ -320,7 +323,8 @@ def spider_run():
             item['title'] = litem['title']
             item['author'] = litem['writerName']
             item['pubtime'] = litem['deliverTime']
-            item['site_name'] = u"灌云政府网-信箱"
+            item['site_name'] = url_slit[0].strip()
+            item['source_url'] = url_slit[-1].strip()
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
             item['content'] = litem['content']
@@ -332,7 +336,8 @@ def spider_run():
             item['re_author'] = litem['respBranchName']
             item['re_pubtime'] = litem['replyTimeString']
             item['re_content'] = litem['replyContent']
-            item['site_name'] = u"灌云政府网-信箱"
+            item['site_name'] = url_slit[0].strip()
+            item['source_url'] = url_slit[-1].strip()
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
             item_fileds(item, "data_comment", "re_bbs", True)

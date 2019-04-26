@@ -23,6 +23,10 @@ from scrapy.spiders import CrawlSpider, Rule
 
 from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
 
+import requests
+from lxml import etree
+import scrapy
+
 
 # 搜索引擎
 class BBsListSpider(CrawlSpider):
@@ -81,34 +85,37 @@ class BBsListSpider(CrawlSpider):
                     else:
                         uri = uri.replace("{IDAY}", str(datetime.now().day))
             self.start_urls.append(uri)
-        # 判断是否翻页规则解析 (方法一)
-        rules = json.loads(conf.get("rules"))
-        if rules == "":
-            logging.error(u"规则解析未得到!!!")
-            return
-        keys = len(rules.keys())
-        if keys == 1:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath", ""))),
-                    follow=False,
-                    callback="parse_item")
-            ]
-        elif keys == 2:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("reles_pagexpath"))),
-                    follow=True,
-                ),
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath"))),
-                    follow=False,
-                    callback="parse_item")
-            ]
+    def start_requests(self):
+        item = Item()
+        for url in self.start_urls:
+            url_slit = url.split(":")
+            site_name = url_slit[0]
+            url = ":".join(url_slit[1:-1])
+            item.fields["site_name"] = Field()
+            item['site_name'] = site_name
+            item.fields["source_url"] = Field()
+            item['source_url'] = url_slit[-1]
+            yield scrapy.Request(url=url, meta={"item": item}, dont_filter=True, callback=self.parse_url)
 
+    def parse_url(self, response):
+        item = response.meta['item']
+        rules = json.loads(self.conf.get("rules"))
+        if rules == "":
+            raise logging.error(u"规则解析未得到!!!")
+        links = LinkExtractor(restrict_xpaths=u"%s" % rules['rules_listxpath'])
+        use_iframe = self.conf.get("use_iframe", "0")
+        if use_iframe == "0":
+            for url in links.extract_links(response):
+                yield scrapy.Request(url.url, self.parse_item, meta={"item": item}, dont_filter=True)
+        else:
+            for uri in links.extract_links(response):
+                html = requests.get(uri.url).content
+                dom = etree.HTML(html)
+                url = u"".join(dom.xpath("//iframe/@src"))
+                yield scrapy.Request(url, self.parse_item, meta={"item": item}, dont_filter=True)
     # 内容解析
     def parse_item(self, response):
-        item = Item()
+        item = response.meta['item']
         sel = Selector(response)
         fields = json.loads(self.conf.get("fields"))
         loops_cout = len(sel.xpath(fields.get("fields").get("loop_content").get("xpath")))
@@ -130,7 +137,7 @@ class BBsListSpider(CrawlSpider):
                                     loop.xpath(fields.get("fields").get(k).get("xpath")).extract()).strip()
                             elif fields.get("fields").get(k).keys()[0] == "value":
                                 item[k] = fields.get("fields").get(k).get("value")
-                        elif k == "title" or k == "site_name":
+                        elif k == "title" or k =='site_name':
                             item.fields[k] = Field()
                             if fields.get("fields").get(k).keys()[0] == "xpath":
                                 item[k] = "".join(

@@ -37,7 +37,7 @@ conf = ConfigParser.ConfigParser()
 conf.read(PATH)
 SPLASH_URL = conf.get("splash", "splash_url")
 # 去重过滤器
-# DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 
 # 使用Splash的Http缓存
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'

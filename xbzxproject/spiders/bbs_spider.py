@@ -17,15 +17,18 @@ import string
 from datetime import datetime
 
 from scrapy import Item, Field
+import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose
-from scrapy.spiders import CrawlSpider, Rule
+from scrapy.spiders import CrawlSpider, Rule,Spider
 
 from xbzxproject.utils.loadconfig import loadMySQL, api_netspider
+import requests
+from lxml import etree
+import scrapy
 
-
-class BBsSpider(CrawlSpider):
+class BBsSpider(Spider):
     name = "bbs"
     table_name = "data_bbs"
 
@@ -81,34 +84,39 @@ class BBsSpider(CrawlSpider):
                     else:
                         uri = uri.replace("{IDAY}", str(datetime.now().day))
             self.start_urls.append(uri)
-        # 判断是否翻页规则解析 (方法一)
-        rules = json.loads(conf.get("rules"))
+
+    def start_requests(self):
+        item = Item()
+        for url in self.start_urls:
+            url_slit = url.split(":")
+            site_name = url_slit[0]
+            url = ":".join(url_slit[1:-1])
+            item.fields["site_name"] = Field()
+            item['site_name'] = site_name
+            item.fields["source_url"] = Field()
+            item['source_url'] = url_slit[-1]
+            yield scrapy.Request(url=url, meta={"item": item}, dont_filter=True,callback=self.parse_url)
+
+    def parse_url(self, response):
+        item = response.meta['item']
+        rules = json.loads(self.conf.get("rules"))
         if rules == "":
-            logging.error(u"规则解析未得到!!!")
-            return
-        keys = len(rules.keys())
-        if keys == 1:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath", ""))),
-                    follow=False,
-                    callback="parse_item")
-            ]
-        elif keys == 2:
-            self.rules = [
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("reles_pagexpath"))),
-                    follow=True,
-                ),
-                Rule(LinkExtractor(
-                    restrict_xpaths=u"{}".format(rules.get("rules_listxpath"))),
-                    follow=False,
-                    callback="parse_item")
-            ]
+            raise logging.error(u"规则解析未得到!!!")
+        links = LinkExtractor(restrict_xpaths=u"%s" % rules['rules_listxpath'])
+        use_iframe = self.conf.get("use_iframe", "0")
+        if use_iframe == "0":
+            for url in links.extract_links(response):
+                yield scrapy.Request(url.url, self.parse_item, meta={"item": item}, dont_filter=True)
+        else:
+            for uri in links.extract_links(response):
+                html = requests.get(uri.url).content
+                dom = etree.HTML(html)
+                url = u"".join(dom.xpath("//iframe/@src"))
+                yield scrapy.Request(url, self.parse_item, meta={"item": item}, dont_filter=True)
 
     # 内容解析
     def parse_item(self, response):
-        item = Item()
+        item = response.meta['item']
         fields = json.loads(self.conf.get("fields"))
         l = ItemLoader(item, response)
         item.fields["url"] = Field()

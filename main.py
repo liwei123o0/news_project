@@ -21,16 +21,19 @@ def main():
     """
     uid = uuid.uuid1().hex
     debug = raw_input(u"请输入调试模式：")
+    spider_type = raw_input(u"请输入爬虫类型：")
     spider_name = raw_input(u"请输入爬虫名称：")
     if debug != "info" and debug != "debug":
         debug = "info"
     if debug == "info":
         print("#########info##########")
-        scrapyrun = "scrapy crawl news -a name_spider=%s -a spider_jobid=%s -a debug=true" % (spider_name, uid)
+        scrapyrun = "scrapy crawl %s -a name_spider=%s -a spider_jobid=%s -a debug=true" % (
+        spider_type, spider_name, uid)
         cmdline.execute(scrapyrun.split())
     else:
         print("#########debug##########")
-        scrapyrun = "scrapy crawl news -a name_spider=%s -a spider_jobid=%s -a debug=true -L DEBUG" % (spider_name, uid)
+        scrapyrun = "scrapy crawl %s -a name_spider=%s -a spider_jobid=%s -a debug=true -L DEBUG" % (
+        spider_type, spider_name, uid)
         cmdline.execute(scrapyrun.split())
 
 if __name__ == "__main__":
