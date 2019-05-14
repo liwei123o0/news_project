@@ -22,15 +22,13 @@ from datetime import datetime, timedelta
 import MySQLdb
 import requests
 from faker import Faker
-from lxml import etree
-from selenium import webdriver
 
 fake = Faker(locale="zh_CN")
-conf = "http://sync.yuwoyg.com:8086/api/web/manage/config/newsConfig/open/search?filters[0].columnName=spider_name&filters[0].op=2&filters[0].value=lyg_01"
+conf = "http://sync.yuwoyg.com:8086/api/web/manage/config/newsConfig/open/search?filters[0].columnName=spider_name&filters[0].op=2&filters[0].value=guanyun_01"
 api_all = json.loads(requests.get(conf).content)
 name_spider = api_all['data']["datas"][0]
-urls = name_spider["start_urls"].split(",")
-
+start_urls = name_spider['start_urls'].split(',')
+urls = ["http://new.guanyun.gov.cn/intertidwebapp/mailbox/letterListJson"]
 __all__ = ['parse_date', 'tz_offset']
 
 orderno = "ZF20193195158qiaFzt"
@@ -49,7 +47,7 @@ md5_string = hashlib.md5(string).hexdigest()  # 计算sign
 sign = md5_string.upper()  # 转换成大写
 auth = "sign=" + sign + "&" + "orderno=" + orderno + "&" + "timestamp=" + timestamp
 proxy = {"http": "http://" + ip_port}
-headers = {"Proxy-Authorization": auth, "User-Agent": fake.user_agent()}
+spider_jobid = uuid.uuid4().hex
 
 
 def parse_date(x, fmt='auto', tz='+08:00', err=None):
@@ -309,64 +307,41 @@ def item_fileds(item, tablename, type_name, debug):
 
 
 def spider_run():
-    spider_jobid = uuid.uuid4().hex
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-    # 无头浏览
-    chrome_options.add_argument('--headless')
-    driver = webdriver.Chrome(chrome_options=chrome_options)
-    htmls = []
-    for url in urls:
+    for url in start_urls:
+        headers = {
+            "Host": "new.guanyun.gov.cn",
+            "Referer": "http://new.guanyun.gov.cn/fzlm/sjxx/index.shtml",
+            "User-Agent": fake.user_agent(),
+        }
+        data = {"mailType": "0", "pageSize": "15", "pageNum": "1", "channelId": "1067"}
         url_slit = url.split(":")
-        urii = ":".join(url_slit[1:-1]).strip()
-        site_name = url_slit[0].strip()
-        source_url = url_slit[-1].strip()
-        driver.get(urii)
-        driver.implicitly_wait(10)
-        htmls.append(u"{}:{}:{}".format(site_name, driver.page_source, source_url))
-    driver.quit()
-    for html in htmls:
-        url_slit = html.split(":")
-        htmli = ":".join(url_slit[1:-1]).strip()
-        site_name = url_slit[0].strip()
-        source_url = url_slit[-1].strip()
-        doms = etree.HTML(htmli)
-        dom = doms.xpath("//div[@class='gajxj_con']//tr")
-        for d in dom:
+        url = ":".join(url_slit[1:-1])
+        hl = json.loads(requests.post(url, headers=headers, data=data).content)
+        for litem in hl['topics']:
             item = {}
-            item['url'] = "http://www.lyg.gov.cn" + u"".join(d.xpath("./td[2]/a/@href"))
-            try:
-                hml = requests.get(item['url'], headers=headers, proxies=proxy, timeout=timeout).content
-            except:
-                continue
-            dd = etree.HTML(hml)
-            item['title'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['title']['xpath'])).strip()
-            item['author'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['author']['xpath'])).strip()
-            item['pubtime'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['pubtime']['xpath'])).strip()
-            item['site_name'] = site_name
-            item['source_url'] = source_url
+            item['url'] = "http://new.guanyun.gov.cn/fzlm/sjxx/xjnry/index.shtml?searchNo={}".format(litem['searchNo'])
+            item['title'] = litem['title']
+            item['author'] = litem['writerName']
+            item['pubtime'] = litem['deliverTime']
+            item['site_name'] = url_slit[0].strip()
+            item['source_url'] = url_slit[-1].strip()
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
-            item['content'] = u"".join(
-                dd.xpath(json.loads(name_spider['fields'])['fields']['content']['xpath'])).strip()
-            item_fileds(item, "data_comment", "bbs", True)
-            print "##########################################"
+            item['content'] = litem['content']
+            item_fileds(item, "data_bbs", "bbs", True)
+            print u"##########################################"
             item = {}
-            item['url'] = "http://www.lyg.gov.cn" + u"".join(d.xpath("./td[2]/a/@href"))
-            item['title'] = u"".join(d.xpath(json.loads(name_spider['fields'])['fields']['title']['xpath'])).strip()
-            item['re_author'] = u"".join(
-                d.xpath(json.loads(name_spider['fields'])['fields']['author']['xpath'])).strip()
-            item['re_pubtime'] = u"".join(
-                d.xpath(json.loads(name_spider['fields'])['fields']['re_pubtime']['xpath'])).strip()
-            item['re_content'] = u"".join(
-                dd.xpath(json.loads(name_spider['fields'])['fields']['re_content']['xpath'])).strip()
-            item['site_name'] = site_name
-            item['source_url'] = source_url
+            item['url'] = "http://new.guanyun.gov.cn/fzlm/sjxx/xjnry/index.shtml?searchNo={}".format(litem['searchNo'])
+            item['title'] = litem['title']
+            item['re_author'] = litem['respBranchName']
+            item['re_pubtime'] = litem['replyTimeString']
+            item['re_content'] = litem['replyContent']
+            item['site_name'] = url_slit[0].strip()
+            item['source_url'] = url_slit[-1].strip()
             item['net_spider_id'] = name_spider["uuid"]
             item['spider_jobid'] = spider_jobid
             item_fileds(item, "data_comment", "re_bbs", True)
-            print "##########################################"
+            print u"##########################################"
 
 
 if __name__ == '__main__':
