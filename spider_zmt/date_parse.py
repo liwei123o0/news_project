@@ -1,31 +1,12 @@
 # -*- coding: utf-8 -*-
 # ! /usr/bin/env python
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-"""
-@author:LiWei
-@license:LiWei
-@contact:877129310@qq.com
-@version:
-@var:
-@note:
-
-"""
-import hashlib
-import json
 import re
-import uuid
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
-import MySQLdb
-import requests
-from lxml import etree
-from selenium import webdriver
-
-conf = "http://sync.yuwoyg.com:8086/api/web/manage/config/newsConfig/open/search?filters[0].columnName=spider_name&filters[0].op=2&filters[0].value=hmting_01"
-api_all = json.loads(requests.get(conf).content)
-name_spider = api_all['data']["datas"][0]
-urls = name_spider["start_urls"].split(",")
 __all__ = ['parse_date', 'tz_offset']
 
 
@@ -238,117 +219,64 @@ def date_unit(unit):
     return _units[unit]
 
 
-def item_fileds(item, tablename, type_name, debug):
-    fields = []
-    values = []
-    if type_name == "re_bbs":
-        re_md5 = hashlib.md5()
-        url = item['url'].encode("utf8")
-        re_author = item['re_author'].encode("utf8")
-        re_pubtime = item['re_pubtime'].encode("utf8")
-        uap = url + re_author + re_pubtime
-        item_md5 = uap
-        re_md5.update(item_md5)
-        content_md5 = re_md5.hexdigest()
-        fields.append("content_md5")
-        values.append(content_md5)
-    md5 = hashlib.md5()
-    md5.update(item['url'])
-    url_md5 = md5.hexdigest()
-    fields.append("url_md5")
-    values.append(url_md5)
-    if debug:
-        for k, v in item.iteritems():
-            if k == "pubtime" or k == "re_pubtime":
-                v = parse_date(v)
-            print u"{:>13.13}:{}".format(k, v)
-    else:
-        # conn = MySQLdb.connect(host="172.16.100.235", port=8635, user='acq_data', passwd='b2aO6CxVpcWRKF!3', db='acq_data',
-        #                        charset=u"utf8")
-        conn = MySQLdb.connect(host="127.0.0.1", port=3306, user='root', passwd='root', db='acq_data',
-                               charset=u"utf8")
-        cur = conn.cursor()
-        for k, v in item.iteritems():
-            if k == "pubtime":
-                v = parse_date(v)
-            fields.append(k)
-            values.append(v)
-        try:
-            # 根据 item 字段插入数据
-            cur.execute(
-                u"INSERT INTO {}({}) VALUES({});".format(tablename,
-                                                         u",".join(fields), u','.join([u'%s'] * len(fields))),
-                values)
-            conn.commit()
-            print (u"数据插入成功!")
-        except MySQLdb.Error, e:
-            print (u"Mysql Error %d: %s" % (e.args[0], e.args[1]))
-        cur.close()
-        conn.close()
-
-
-def spider_run():
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-    # 无头浏览
-    chrome_options.add_argument('--headless')
-    driver = webdriver.Chrome(chrome_options=chrome_options)
-    uris = []
-    for url in urls:
-        url_slit = url.strip().split(":")
-        urii = ":".join(url_slit[1:-1]).strip()
-        site_name = url_slit[0].strip()
-        source_url = url_slit[-1].strip()
-        driver.get(urii)
-        driver.implicitly_wait(10)
-        for uri in driver.find_elements_by_xpath(json.loads(name_spider['rules'])['rules_listxpath']):
-            uris.append("{}:{}:{}".format(site_name, uri.get_attribute("href"), source_url))
-    driver.quit()
-    spider_jobid = uuid.uuid4().hex
-    for uri in uris:
-        url_slit = uri.split(":")
-        urii = ":".join(url_slit[1:-1]).strip()
-        site_name = url_slit[0].strip()
-        source_url = url_slit[-1].strip()
-        html = requests.get(urii).content
-        dom = etree.HTML(html)
-        item = {}
-        try:
-            item['url'] = urii
-            item['title'] = u"".join(dom.xpath(json.loads(name_spider['fields'])['fields']['title']['xpath'])).strip()
-            item['pubtime'] = u"".join(
-                dom.xpath(json.loads(name_spider['fields'])['fields']['pubtime']['xpath'])).strip()
-            item["pubtime"] = item["pubtime"].replace(u"发表于 ", u"20")
-            item['content'] = u"".join(
-                dom.xpath(json.loads(name_spider['fields'])['fields']['content']['xpath'])).strip()
-            item['author'] = u"".join(dom.xpath(json.loads(name_spider['fields'])['fields']['author']['xpath'])).strip()
-            item['site_name'] = site_name
-            item['source_url'] = source_url
-            item['net_spider_id'] = name_spider["uuid"]
-            item['spider_jobid'] = spider_jobid
-            item_fileds(item, "data_bbs", "bbs", True)
-            loop_content = dom.xpath(json.loads(name_spider['fields'])['fields']['loop_content']['xpath'])
-            for loop in loop_content:
-                item = {}
-                item['url'] = urii
-                item['title'] = u"".join(
-                    dom.xpath(json.loads(name_spider['fields'])['fields']['title']['xpath'])).strip()
-                item['re_author'] = u"".join(
-                    loop.xpath(json.loads(name_spider['fields'])['fields']['re_author']['xpath'])).strip()
-                item['re_content'] = u"".join(
-                    loop.xpath(json.loads(name_spider['fields'])['fields']['re_content']['xpath'])).strip()
-                item['re_pubtime'] = u"".join(
-                    loop.xpath(json.loads(name_spider['fields'])['fields']['re_pubtime']['xpath'])).strip()
-                item["re_pubtime"] = item["re_pubtime"].replace(u"发表于 ", u"20")
-                item['site_name'] = site_name
-                item['source_url'] = source_url
-                item['net_spider_id'] = name_spider["uuid"]
-                item['spider_jobid'] = spider_jobid
-                item_fileds(item, "data_comment", "re_bbs", False)
-        except:
-            print "error_download"
-            continue
-
 if __name__ == '__main__':
-    spider_run()
+
+    xs = [
+        u'2014-01-01',
+        u'2014/11/01',
+        u'2014.12.01',
+
+        u'01:23',
+        u'01:23:45',
+        u'01 : 23 : 45',
+
+        u'2014-01-01 01:23',
+        u'2014-01-01 01:23:45',
+
+        u'今天',
+        u'昨天',
+        u'前天',
+
+        u'刚刚',
+        u'刚才',
+        u'几秒前',
+        u'5秒前',
+
+        u'5分钟前',
+        u'5小时前',
+        u'5天前',
+        u'5周前',
+        u'5年前',
+
+        u'5分钟后',
+        u'5小时后',
+        u'5天后',
+        u'5周后',
+        u'5年后',
+
+        u'半分钟前',
+        u'半小时前',
+        u'半天前',
+        u'半周前',
+        u'半月前',
+        u'半年前',
+
+        u'20140101',
+        u'20140101 012345',
+
+        u'1400641135',
+        u'1400641135000',
+
+        u'4月19号的预售，今天都5月21号了',
+        u'刚才 你去哪了？',
+        u'2014 年 1 月 1 日',
+    ]
+    # print datetime.utcfromtimestamp(0)
+    for i, x in enumerate(xs, 1):
+        print 'IN [%d]: %s' % (i, x)
+        y = parse_date(x, 'auto', 'cst', True)
+        print 'OUT[%d]: %s [%s]' % (i, y, type(y).__name__)
+        print
+    #
+    print '>>>', parse_date('01012014080000', '%m%d%Y%H%M%S', '+08:00')
+    print '>>>', parse_date('1400657331', 'epoch', '+08:00')
