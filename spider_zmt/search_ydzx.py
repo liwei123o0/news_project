@@ -59,4 +59,17 @@ def spider_run():
 
 
 if __name__ == '__main__':
-    spider_run()
+    # spider_run()
+    urls = ['https://www.toutiao.com/c/user/5893695579/#mid=5893937926/',
+            'https://www.toutiao.com/c/user/5460505913/#mid=5541133821/',
+            'https://www.toutiao.com/c/user/73195063644/#mid=1582124699364365',
+            'https://www.toutiao.com/c/user/101244119417/#mid=1606219373887502',
+            'https://www.toutiao.com/c/user/81557582216/#mid=1587290390288398',
+            'https://www.toutiao.com/c/user/4850100857/#mid=4850100857']
+    for url in urls:
+        item = {}
+        item['url'] = url
+        md5 = hashlib.md5()
+        md5.update(item["url"])
+        item['url_md5'] = md5.hexdigest()
+        print url, item['url_md5']
