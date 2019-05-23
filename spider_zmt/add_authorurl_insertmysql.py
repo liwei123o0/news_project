@@ -20,43 +20,39 @@ from utils.connect_mysql import mysql_connect
 
 def add_authorurl():
     conn, cur = mysql_connect()
-    urls = ['https://url.cn/59RGSap', 'https://url.cn/51Z5fFX',
-            'https://url.cn/5ToXCF9', 'https://url.cn/5acY1J1',
-            'https://url.cn/5dlNq5V', 'https://url.cn/5rNNUaA',
-            'https://url.cn/5N2GzjV', 'https://url.cn/5DWwn0t',
-            'https://url.cn/5aieiCI', 'https://url.cn/5EnA4jT',
-            'https://url.cn/5H6CqRS', 'https://url.cn/5P25Hhz',
-            'https://url.cn/5VvPvI5', 'https://url.cn/5HKwcMm',
-            'https://url.cn/5GLda9f', 'https://url.cn/5KgAjxz',
-            'https://url.cn/5zBfrx5', 'https://url.cn/5YrG39b',
-            'https://url.cn/5fFZF4Z', 'https://url.cn/5tDrIoh',
-            'https://url.cn/5F1mIR0', 'https://url.cn/5Bfx3BG',
-            'https://url.cn/5V69Cue', 'https://url.cn/5514GgK',
-            'https://url.cn/5IfIcXL', 'https://url.cn/5n6DGw6',
-            'https://url.cn/5vjdDQk', 'https://url.cn/5H1itNn',
-            'https://url.cn/5r2T9n2', 'https://url.cn/5bhod0z',
-            'https://url.cn/5ODjCw1', 'https://url.cn/5LKpyZ1',
-            'https://url.cn/52LjS3r', 'https://url.cn/5ycUwpd',
-            'https://url.cn/5Bfx3BG', 'https://url.cn/5AY7qXN',
-            'http://url.cn/5EZcgyc', 'https://url.cn/5DKpqNs',
-            'https://url.cn/5U0MvXF', 'https://url.cn/5QB2db8',
-            'https://url.cn/5welgEP', 'https://url.cn/5XeL2KV',
-            'https://url.cn/5A8uTV8', 'https://url.cn/5GF6hoW',
-            'https://url.cn/58qeAkB', 'https://url.cn/5YrG39b',
-            'https://url.cn/5TYNcKK', 'https://url.cn/5rkFFe9',
-            'https://url.cn/5xUHHsk', 'https://url.cn/5gAheTZ',
-            'https://url.cn/5yIvyKn', 'https://url.cn/5PetfA8',
-            'https://url.cn/5k17aNu', 'https://url.cn/5VW44WR',
-            'https://url.cn/59yYNAu', 'https://url.cn/5tzvnFu',
-            'https://url.cn/5lwjNhs', 'https://url.cn/5QFORqO',
-            'https://url.cn/54q7yDB', 'https://url.cn/5mQYdrg',
-            'https://url.cn/57RXl7Y', 'https://url.cn/5WCdP7v']
+    urls = ['https://c.m.163.com/news/sub/T1520070801955.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1481952723512.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1479750369422.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1490060095533.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1472177148070.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1545278947559.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1532164269177.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1540547524322.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1517807774338.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1496822604631.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1493519278174.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1465820709940.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1482287400125.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1537412261039.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1480519297631.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1478588558810.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1510813069613.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1525512880129.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1520070870427.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1534918073023.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1513061284127.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1536479960491.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1512041886007.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1469611763629.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1535687771706.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1522134476776.html?spss=newsapp',
+            'https://c.m.163.com/news/sub/T1502677389148.html?spss=newsapp', ]
     for url in urls:
         md5 = hashlib.md5()
         md5.update(url)
         url_md5 = md5.hexdigest()
         print url, url_md5
-        sql = "INSERT INTO author_url (url, url_md5, site_name) VALUES ('%s', '%s', '头条号_iphone')" % (url, url_md5)
+        sql = "INSERT INTO author_url (url, url_md5, site_name) VALUES ('%s', '%s', '网易号')" % (url, url_md5)
         try:
             cur.execute(sql)
             conn.commit()
